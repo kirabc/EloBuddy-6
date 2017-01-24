@@ -50,9 +50,10 @@ namespace ParaVayne
 			var target = GetAATarget(Player.Instance.AttackRange + Player.Instance.BoundingRadius);
 			if (target == null)
 			{
-				if (Game.Time > lastaa + aacastdelay + 0.025f)
+				if (Game.Time > lastaa + aacastdelay + 0.025f && Game.Time > lastmove + 0.150f)
 				{
 					Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+					lastmove = Game.Time;
 				}
 				return;
 			}
@@ -68,7 +69,11 @@ namespace ParaVayne
 					Player.CastSpell(SpellSlot.Q, Game.CursorPos);
 					return;
 				}
-				Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+				if (Game.Time > lastmove + 0.150f)
+				{
+					Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+					lastmove = Game.Time;
+				}
 				return;
 			}
 		}
