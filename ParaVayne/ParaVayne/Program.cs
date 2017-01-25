@@ -47,6 +47,11 @@ namespace ParaVayne
 		
 		static void Orb()
 		{
+			if (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready && Game.Time > lastaa + aacastdelay + 0.025f && Game.Time < lastaa + (aadelay * 0.75f))
+			{
+				Player.CastSpell(SpellSlot.Q, Game.CursorPos);
+				return;
+			}
 			var target = GetAATarget(Player.Instance.AttackRange + Player.Instance.BoundingRadius);
 			if (target == null)
 			{
@@ -62,19 +67,10 @@ namespace ParaVayne
 				Player.IssueOrder(GameObjectOrder.AttackUnit, target);
 				return;
 			}
-			if (Game.Time > lastaa + aacastdelay + 0.025f)
+			if (Game.Time > lastaa + aacastdelay + 0.025f && Game.Time > lastmove + 0.150f)
 			{
-				if (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready && Game.Time < lastaa + (aadelay * 0.75f))
-				{
-					Player.CastSpell(SpellSlot.Q, Game.CursorPos);
-					return;
-				}
-				if (Game.Time > lastmove + 0.150f)
-				{
-					Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-					lastmove = Game.Time;
-				}
-				return;
+				Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+				lastmove = Game.Time;
 			}
 		}
 		
