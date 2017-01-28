@@ -6,25 +6,25 @@ using EloBuddy.SDK;
 using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
-using EloBuddy.SDK.Enumerations;
 using SharpDX;
+
 namespace ParaSyndra
 {
 	class Program
 	{
+		static float lastq, lastw, laste;
+		static Vector3 qpt;
 		static Menu Config, Auto;
 		static readonly Dictionary<int, GameObject> GrabableW = new Dictionary<int, GameObject>();
-		static readonly Spell.Skillshot Q = new Spell.Skillshot(SpellSlot.Q, 800, SkillShotType.Circular, 275, int.MaxValue, 225, DamageType.Magical) { MinimumHitChance = HitChance.High };
-		static readonly Spell.Skillshot W = new Spell.Skillshot(SpellSlot.W, 950, SkillShotType.Circular, 275, 2500, 225, DamageType.Magical) { MinimumHitChance = HitChance.High };
-		static readonly Spell.Skillshot E = new Spell.Skillshot(SpellSlot.E, 700, SkillShotType.Linear, 250, 2500, 55, DamageType.Magical) { MinimumHitChance = HitChance.High };
+		static readonly Spell.Skillshot Q = new Spell.Skillshot(SpellSlot.Q, 800, EloBuddy.SDK.Enumerations.SkillShotType.Circular, 250, int.MaxValue, 150, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.Medium };
+		static readonly Spell.Skillshot W = new Spell.Skillshot(SpellSlot.W, 950, EloBuddy.SDK.Enumerations.SkillShotType.Circular, 250, 1450, 210, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.Medium };
+		static readonly Spell.Skillshot E = new Spell.Skillshot(SpellSlot.E, 700, EloBuddy.SDK.Enumerations.SkillShotType.Linear, 250, 2500, 55, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.Medium };
 		static readonly Spell.Targeted R = new Spell.Targeted(SpellSlot.R, 675, DamageType.Magical);
 		static readonly Spell.Targeted R5 = new Spell.Targeted(SpellSlot.R, 750, DamageType.Magical);
-				
 		public static void Main(string[] args)
 		{
 			Loading.OnLoadingComplete += Loading_OnLoadingComplete;
 		}
-		
 		static void Loading_OnLoadingComplete(EventArgs args)
 		{
 			if (Player.Instance.ChampionName != "Syndra")
@@ -32,8 +32,7 @@ namespace ParaSyndra
 				return;
 			}
 			Config = MainMenu.AddMenu("ParaSyndra", "parasyndra");
-			Config.AddGroupLabel("Para Syndra [1.0.0.6]");
-			
+			Config.AddGroupLabel("ParaSyndra [1.0.0.7]");
 			Auto = Config.AddSubMenu("Automatic");
 			Auto.AddGroupLabel("Ulti ON:");
 			foreach (var enemy in EntityManager.Heroes.Enemies)
@@ -44,12 +43,11 @@ namespace ParaSyndra
 			Auto.AddGroupLabel("AUTO Harras:");
 			Auto.Add("autoq", new CheckBox("Q"));
 			Auto.Add("automana", new Slider("Minimum Mana Percent", 50));
-			
 			Game.OnUpdate += Game_OnUpdate;
 			GameObject.OnCreate += GameObject_OnCreate;
 			GameObject.OnDelete += GameObject_OnDelete;
 		}
-		
+
 		static void Game_OnUpdate(EventArgs args)
 		{
 			RLogic();
@@ -63,62 +61,13 @@ namespace ParaSyndra
 				{
 					Orbwalker.DisableAttacking = false;
 				}
-				if (Game.Time > laste + 0.5f)
+				QLogic();
+				if (E.IsReady() && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.5f && Game.Time > laste + 2f)
 				{
-					QLogic();
-				}
-				if (E.IsReady() && Game.Time > lastq + 0.2f && Game.Time < lastq + 0.4f && Game.Time > laste + 2)
-				{
-					qe++;
-					Chat.Print("qe: "+qe);
 					Player.CastSpell(SpellSlot.E, qpt);
 					laste = Game.Time;
 				}
-				if (Game.Time > laste + 0.5f)
-				{
-					WLogic();
-					if (Game.Time < lastwobj + 0.25f && Game.Time > lastw + 2)
-					{
-						w++;
-						Chat.Print("w: "+w);
-						lastw = Game.Time;
-						Player.CastSpell(SpellSlot.W, wpt);
-					}
-					else if (Game.Time > lastwobj + 0.25f && Game.Time < lastwobj + 5 && Player.Instance.HasBuff("syndrawtooltip"))
-					{
-						var target = TargetSelector.GetTarget(1050, DamageType.Magical);
-						if (target.IsValidTarget())
-						{
-							Vector3 pos1 = W.GetPrediction(target).CastPosition;
-							if (pos1.Distance(Player.Instance) < 950)
-							{
-								lastw = Game.Time;
-								Player.CastSpell(SpellSlot.W, pos1);
-							}
-							else
-							{
-								var t = TargetSelector.GetTarget(950, DamageType.Magical);
-								if (t.IsValidTarget())
-								{
-									Vector3 pos2 = W.GetPrediction(t).CastPosition;
-									if (pos2.Distance(Player.Instance) < 950)
-									{
-										lastw = Game.Time;
-										Player.CastSpell(SpellSlot.W, pos2);
-									}
-								}
-							}
-						}
-					}
-				}
-				if (E.IsReady() && Game.Time > lastw + 0.2f && Game.Time < lastw + 0.5f && !Player.Instance.HasBuff("syndrawtooltip") && Game.Time > laste + 2 && qball && wpt.Distance(Player.Instance)<675)
-				{
-					we++;
-					Chat.Print("we: "+we);
-					Player.CastSpell(SpellSlot.E, wpt);
-					qball = false;
-					laste = Game.Time;
-				}
+				WLogic();
 			}
 			else
 			{
@@ -130,46 +79,28 @@ namespace ParaSyndra
 			}
 		}
 		
-		static int q, w, qe, we, gm, go;
-		static float lastq, lastwobj, lastw, laste;
-		static Vector3 qpt, wpt;
-		static bool qball;
 		static void QLogic()
 		{
-			if (!Q.IsReady() || Game.Time < lastq + 2)
+			if (!Q.IsReady())
 				return;
 			var target = TargetSelector.GetTarget(1000, DamageType.Magical);
 			if (target.IsValidTarget())
 			{
 				Vector3 pos = Q.GetPrediction(target).CastPosition;
-				if (pos.Distance(Player.Instance) < 800)
+				if (!pos.IsZero && pos.Distance(Player.Instance) < 800)
 				{
-					if (Player.CastSpell(SpellSlot.Q, pos))
-					{
-						q++;
-						Chat.Print("q: "+q);
-						qpt = pos;
+					qpt = pos;
+					if (Q.Cast(target))
 						lastq = Game.Time;
-						return;
-					}
 				}
 				else
 				{
 					var t = TargetSelector.GetTarget(800, DamageType.Magical);
 					if (t.IsValidTarget())
 					{
-						Vector3 pos2 = Q.GetPrediction(target).CastPosition;
-						if (pos2.Distance(Player.Instance) < 800)
-						{
-							if (Player.CastSpell(SpellSlot.Q, pos2))
-							{
-								q++;
-								Chat.Print("q: "+q);
-								qpt = pos2;
-								lastq = Game.Time;
-								return;
-							}
-						}
+						qpt = Q.GetPrediction(t).CastPosition;
+						if (Q.Cast(t))
+							lastq = Game.Time;
 					}
 				}
 			}
@@ -177,73 +108,42 @@ namespace ParaSyndra
 		
 		static void WLogic()
 		{
-			if (!W.IsReady()) return;
-			if (Game.Time < lastwobj + 5) // E.IsReady() || Game.Time < laste + 0.5f ||
+			if (E.IsReady() || Game.Time < laste + 0.75f)
 			{
 				return;
 			}
-			bool pos = false;
-			Vector3 wobj = new Vector3();
-			foreach (var syndrasq in GrabableW.Where(x=>x.Value.Position.Distance(Player.Instance)<925))
+			if (W.IsReady())
 			{
-				qball = true;
-				pos = true;
-				wobj = syndrasq.Value.Position;
-				break;
-			}
-			if (!pos)
-			{
-				foreach (var minion in EntityManager.MinionsAndMonsters.EnemyMinions.Where(x=>x.Position.Distance(Player.Instance)<925))
+				bool pos = false;
+				foreach (var syndrasq in GrabableW.Where(x=>x.Value.Position.Distance(Player.Instance)<926))
 				{
 					pos = true;
-					wobj = minion.Position;
 					break;
 				}
-			}
-			if (pos)
-			{
-				var target = TargetSelector.GetTarget(1050, DamageType.Magical);
-				if (target.IsValidTarget())
+				if (!pos)
 				{
-					Vector3 pos1 = W.GetPrediction(target).CastPosition;
-					if (pos1.Distance(Player.Instance) < 950)
+					foreach (var minion in EntityManager.MinionsAndMonsters.EnemyMinions.Where(x=>x.Position.Distance(Player.Instance)<926))
 					{
-						if (qball)
+						pos = true;
+						break;
+					}
+				}
+				if (pos)
+				{
+					var target = TargetSelector.GetTarget(1050, DamageType.Magical);
+					if (target.IsValidTarget())
+					{
+						Vector3 ppos = W.GetPrediction(target).CastPosition;
+						if (!ppos.IsZero && ppos.Distance(Player.Instance) < 950)
 						{
-							go++;
-							Chat.Print("grab qball: "+go);
+							W.Cast(target);
 						}
 						else
 						{
-							gm++;
-							Chat.Print("grab minion: "+gm);
-						}
-						wpt = pos1;
-						lastwobj = Game.Time;
-						Player.CastSpell(SpellSlot.W, wobj);
-						return;
-					}
-					else
-					{
-						var t = TargetSelector.GetTarget(950, DamageType.Magical);
-						if (t.IsValidTarget())
-						{
-							Vector3 pos2 = W.GetPrediction(t).CastPosition;
-							if (pos2.Distance(Player.Instance) < 950)
+							var t = TargetSelector.GetTarget(950, DamageType.Magical);
+							if (t.IsValidTarget())
 							{
-								if (qball)
-								{
-									go++;
-									Chat.Print("grab qball: "+go);
-								}
-								else
-								{
-									gm++;
-									Chat.Print("grab minion: "+gm);
-								}
-								wpt = pos2;
-								lastwobj = Game.Time;
-								Player.CastSpell(SpellSlot.W, wobj);
+								W.Cast(t);
 							}
 						}
 					}
@@ -290,7 +190,7 @@ namespace ParaSyndra
 		{
 			float magicresist = (unit.SpellBlock - Player.Instance.FlatMagicPenetrationMod) * Player.Instance.PercentMagicPenetrationMod;
 			float damage = (1f - (magicresist / (magicresist + 100))) * (3 + GrabableW.Count()) * (new[] { 90, 135, 180 }[R.Level - 1] + (Player.Instance.TotalMagicalDamage * 0.2f));
-			if (damage + 200f > unit.MagicShield + unit.Health && unit.Health / unit.MaxHealth * 100 > 10)
+			if (damage + 100f > unit.MagicShield + unit.Health && unit.Health / unit.MaxHealth * 100 > 10)
 			{
 				return true;
 			}
