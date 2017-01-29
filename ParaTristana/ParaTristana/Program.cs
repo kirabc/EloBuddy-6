@@ -64,11 +64,13 @@ namespace ParaTristana
 			{
 				AIHeroClient t = target as AIHeroClient;
 				E.Cast(t);
+				Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 				return;
 			}
 			if (Q.IsReady())
 			{
 				Q.Cast();
+				Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 				return;
 			}
 			if (Game.Time > lastaa + aadelay)
