@@ -32,7 +32,7 @@ namespace ParaSyndra
 				return;
 			}
 			Config = MainMenu.AddMenu("ParaSyndra", "parasyndra");
-			Config.AddGroupLabel("ParaSyndra [1.0.0.7]");
+			Config.AddGroupLabel("ParaSyndra [1.0.0.8]");
 			Auto = Config.AddSubMenu("Automatic");
 			Auto.AddGroupLabel("Ulti ON:");
 			foreach (var enemy in EntityManager.Heroes.Enemies)
