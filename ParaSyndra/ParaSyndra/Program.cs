@@ -12,8 +12,8 @@ namespace ParaSyndra
 {
 	class Program
 	{
-		static float lastq, lastw, laste;
-		static Vector3 qpt;
+		static float lastq, lastw, laste, wminion;
+		static Vector3 qpt, wpt;
 		static Menu Config, Auto;
 		static readonly Dictionary<int, GameObject> GrabableW = new Dictionary<int, GameObject>();
 		static readonly Spell.Skillshot Q = new Spell.Skillshot(SpellSlot.Q, 800, EloBuddy.SDK.Enumerations.SkillShotType.Circular, 250, int.MaxValue, 150, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.Medium };
@@ -61,6 +61,7 @@ namespace ParaSyndra
 				{
 					Orbwalker.DisableAttacking = false;
 				}
+				QE1100();
 				QLogic();
 				if (E.IsReady() && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.5f && Game.Time > laste + 2f)
 				{
@@ -68,6 +69,21 @@ namespace ParaSyndra
 					laste = Game.Time;
 				}
 				WLogic();
+				if (W.IsReady() && Game.Time < wminion + 5f && Game.Time > lastw + 2f)
+				{
+					if (Game.Time < wminion + 0.3f)
+					{
+						if (Player.Instance.HasBuff("syndrawtooltip"))
+						{
+							Player.CastSpell(SpellSlot.W, wpt);
+							lastw = Game.Time;
+						}
+					}
+					else if (Game.Time > wminion + 0.5f && !Player.Instance.HasBuff("syndrawtooltip"))
+					{
+						wminion = 0;
+					}
+				}
 			}
 			else
 			{
@@ -76,6 +92,26 @@ namespace ParaSyndra
 				{
 					QLogic();
 				}
+			}
+		}
+		
+		static void QE1100()
+		{
+			if (!Q.IsReady() || !E.IsReady() || Game.Time < lastq + 1f || Game.Time < laste + 1f)
+				return;
+			var target = TargetSelector.GetTarget(1300, DamageType.Magical);
+			if (!target.IsValidTarget())
+				return;
+			Vector3 pos1 = Q.GetPrediction(target).CastPosition;
+			Vector3 pos2 = Player.Instance.Position;
+			float d = pos1.Distance(pos2);
+			if (!pos1.IsZero && d < 1100 && d > 700)
+			{
+				Vector3 pos3 = pos2 + ((pos1 - pos2).Normalized() * 675);
+				Player.CastSpell(SpellSlot.Q, pos3);
+				Core.DelayAction(() => Player.CastSpell(SpellSlot.E, pos3), 250);
+				lastq = Game.Time;
+				laste = Game.Time;
 			}
 		}
 		
@@ -108,46 +144,52 @@ namespace ParaSyndra
 		
 		static void WLogic()
 		{
-			if (E.IsReady() || Game.Time < laste + 0.75f)
+			if (!W.IsReady() || E.IsReady() || Game.Time < laste + 0.75f)
 			{
 				return;
 			}
-			if (W.IsReady())
+			var t1 = TargetSelector.GetTarget(1050, DamageType.Magical);
+			if (t1.IsValidTarget())
 			{
-				bool pos = false;
-				foreach (var syndrasq in GrabableW.Where(x=>x.Value.Position.Distance(Player.Instance)<926))
+				Vector3 pos1 = W.GetPrediction(t1).CastPosition;
+				if (!pos1.IsZero && pos1.Distance(Player.Instance) < 950)
 				{
-					pos = true;
-					break;
+					GrabMinion(pos1);
 				}
-				if (!pos)
+				else
 				{
-					foreach (var minion in EntityManager.MinionsAndMonsters.EnemyMinions.Where(x=>x.Position.Distance(Player.Instance)<926))
+					var t2 = TargetSelector.GetTarget(950, DamageType.Magical);
+					if (t2.IsValidTarget())
 					{
-						pos = true;
-						break;
-					}
-				}
-				if (pos)
-				{
-					var target = TargetSelector.GetTarget(1050, DamageType.Magical);
-					if (target.IsValidTarget())
-					{
-						Vector3 ppos = W.GetPrediction(target).CastPosition;
-						if (!ppos.IsZero && ppos.Distance(Player.Instance) < 950)
+						Vector3 pos2 = W.GetPrediction(t2).CastPosition;
+						if (!pos2.IsZero && pos2.Distance(Player.Instance) < 950)
 						{
-							W.Cast(target);
-						}
-						else
-						{
-							var t = TargetSelector.GetTarget(950, DamageType.Magical);
-							if (t.IsValidTarget())
-							{
-								W.Cast(t);
-							}
+							GrabMinion(pos2);
 						}
 					}
 				}
+			}
+		}
+		
+		static void GrabMinion(Vector3 pos)
+		{
+			if (Game.Time < wminion + 5)
+				return;
+			foreach (var syndrasq in GrabableW.Where(x=>x.Value.Position.Distance(Player.Instance)<925))
+			{
+				Player.CastSpell(SpellSlot.W, syndrasq.Value.Position);
+				wminion = Game.Time;
+				wpt = pos;
+				break;
+			}
+			if (Game.Time < wminion + 5)
+				return;
+			foreach (var minion in EntityManager.MinionsAndMonsters.EnemyMinions.Where(x=>x.Position.Distance(Player.Instance)<925))
+			{
+				Player.CastSpell(SpellSlot.W, minion.Position);
+				wminion = Game.Time;
+				wpt = pos;
+				break;
 			}
 		}
 		
