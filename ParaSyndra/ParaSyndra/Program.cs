@@ -18,7 +18,7 @@ namespace ParaSyndra
 		static readonly Dictionary<int, GameObject> GrabableW = new Dictionary<int, GameObject>();
 		static readonly Spell.Skillshot Q = new Spell.Skillshot(SpellSlot.Q, 800, EloBuddy.SDK.Enumerations.SkillShotType.Circular, 250, int.MaxValue, 150, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.Medium };
 		static readonly Spell.Skillshot W = new Spell.Skillshot(SpellSlot.W, 950, EloBuddy.SDK.Enumerations.SkillShotType.Circular, 250, 1450, 210, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.Medium };
-		static readonly Spell.Skillshot E = new Spell.Skillshot(SpellSlot.E, 700, EloBuddy.SDK.Enumerations.SkillShotType.Linear, 250, 2500, 55, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.Medium };
+		static readonly Spell.Skillshot E = new Spell.Skillshot(SpellSlot.E, 700, EloBuddy.SDK.Enumerations.SkillShotType.Linear, 250, 2000, 100, DamageType.Magical) { MinimumHitChance = EloBuddy.SDK.Enumerations.HitChance.High };
 		static readonly Spell.Targeted R = new Spell.Targeted(SpellSlot.R, 675, DamageType.Magical);
 		static readonly Spell.Targeted R5 = new Spell.Targeted(SpellSlot.R, 750, DamageType.Magical);
 		public static void Main(string[] args)
@@ -63,7 +63,7 @@ namespace ParaSyndra
 				}
 				QE1100();
 				QLogic();
-				if (E.IsReady() && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.5f && Game.Time > laste + 2f)
+				if (E.IsReady() && Game.Time < lastq + 0.3f && Game.Time > laste + 2f)
 				{
 					Player.CastSpell(SpellSlot.E, qpt);
 					laste = Game.Time;
@@ -102,14 +102,14 @@ namespace ParaSyndra
 			var target = TargetSelector.GetTarget(1300, DamageType.Magical);
 			if (!target.IsValidTarget())
 				return;
-			Vector3 pos1 = Q.GetPrediction(target).CastPosition;
+			Vector3 pos1 = E.GetPrediction(target).CastPosition;
 			Vector3 pos2 = Player.Instance.Position;
 			float d = pos1.Distance(pos2);
 			if (!pos1.IsZero && d < 1100 && d > 700)
 			{
 				Vector3 pos3 = pos2 + ((pos1 - pos2).Normalized() * 675);
 				Player.CastSpell(SpellSlot.Q, pos3);
-				Core.DelayAction(() => Player.CastSpell(SpellSlot.E, pos3), 250);
+				Player.CastSpell(SpellSlot.E, pos3);
 				lastq = Game.Time;
 				laste = Game.Time;
 			}
