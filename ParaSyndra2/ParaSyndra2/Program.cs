@@ -141,7 +141,7 @@ namespace ParaSyndra2
 				{
 					Orbwalker.DisableAttacking = false;
 				}
-				if (CastSpell(SpellSlot.Q, enemy, 800, 0, 0.75f))
+				if (CastSpell(SpellSlot.Q, enemy, 800, 0, 0.5f))
 				{
 					break;
 				}
@@ -158,14 +158,14 @@ namespace ParaSyndra2
 				wminion = 0;
 			}
 			
-			if (Game.Time < wminion + 5 && Player.Instance.HasBuff("syndrawtooltip"))
+			if (Player.Instance.HasBuff("syndrawtooltip"))
 			{
 				for (int i = 1; i < 6; i++)
 				{
 					var enemy = TargetSelector.GetTarget(1400 - (100 * i), DamageType.Magical);
 					if (!enemy.IsValidTarget())
 						return;
-					if (CastSpell(SpellSlot.W, enemy, 950, 1450, 0.75f))
+					if (CastSpell(SpellSlot.W, enemy, 950, 1450, 0.5f))
 					{
 						break;
 					}
@@ -173,7 +173,7 @@ namespace ParaSyndra2
 				return;
 			}
 			
-			if (Game.Time < wminion + 5)
+			if (Game.Time < wminion + 5 || Player.Instance.HasBuff("syndrawtooltip"))
 				return;
 			
 			if (Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
