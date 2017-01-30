@@ -8,7 +8,7 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
 
-namespace ParaSyndra2
+namespace ParaSyndraaaa
 {
 	public class Timer
 	{
@@ -179,7 +179,7 @@ namespace ParaSyndra2
 			if (Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
 				return;
 			
-			int count = EntityManager.Heroes.Enemies.Count(x => x.IsValidTarget(950));
+			int count = EntityManager.Heroes.Enemies.Count(x => x.IsValidTarget(900));
 			
 			if (count < 1)
 				return;
@@ -244,10 +244,6 @@ namespace ParaSyndra2
 				Check(slot, ep);
 				return true;
 			}
-			if (Game.Time > Timers[enemyid].PathTime + 0.25f)
-			{
-				return false;
-			}
 			float enemyspeed = enemy.MoveSpeed;
 			Vector2 mepos = Player.Instance.Position.To2D();
 			Vector2 enemypos = enemy.Position.To2D();
@@ -281,7 +277,7 @@ namespace ParaSyndra2
 			{
 				predpos = enemy.Position;
 			}
-			if (predpos.IsZero || predpos.Distance(mepos) > range)
+			if (predpos.IsZero || predpos.Distance(mepos) > range || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
 				return false;
 			Player.CastSpell(slot, predpos);
 			Check(slot, predpos);
