@@ -174,7 +174,7 @@ namespace ParaSyndra
 			if (!enemy.IsValidTarget())
 				return;
 			if ((Player.Instance.Level >= AASettings["disaa"].Cast<Slider>().CurrentValue && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * AASettings["minaa"].Cast<Slider>().CurrentValue) ||
-			    (AASettings["readyaa"].Cast<CheckBox>().CurrentValue && (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready || Player.CanUseSpell(SpellSlot.W) == SpellState.Ready || Player.CanUseSpell(SpellSlot.E) == SpellState.Ready)))
+			    (AASettings["readyaa"].Cast<CheckBox>().CurrentValue && (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready || (Player.CanUseSpell(SpellSlot.W) == SpellState.Ready && Player.CanUseSpell(SpellSlot.E) != SpellState.Ready))))
 			{
 				Orbwalker.DisableAttacking = true;
 			}
