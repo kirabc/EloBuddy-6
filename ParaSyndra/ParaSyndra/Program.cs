@@ -236,7 +236,7 @@ namespace ParaSyndra
 			foreach (var qobj in QObjects)
 			{
 				Vector2 P1 = Player.Instance.Position.To2D();
-				Vector2 P2 = GetPoint(enemy, 1100, 0, 0.5f, true);
+				Vector2 P2 = GetPoint(enemy, 1100, 0, 0.5f);
 				if (P2.IsZero)
 					return;
 				Vector2 P3 = qobj.Value.Position.To2D();
