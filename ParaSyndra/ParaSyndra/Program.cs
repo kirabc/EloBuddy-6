@@ -190,7 +190,7 @@ namespace ParaSyndra
 			if (!enemy.IsValidTarget())
 				return;
 			float delay = 0.5f;
-			if (Game.Time > laste + 2f && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
+			if (Game.Time > laste + 2f && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready)
 			{
 				delay = 0.9f;
 			}
