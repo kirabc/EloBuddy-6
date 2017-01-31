@@ -67,7 +67,6 @@ namespace ParaSyndra
 			AASettings = Config.AddSubMenu("Orbwalking Attack Settings");
 			AASettings.Add("disaa", new Slider("Disable Attack Level", 11, 1, 18));
 			AASettings.Add("readyaa", new CheckBox("Disable Attack If Q | W | E Ready"));
-			AASettings.Add("enaaa", new CheckBox("Enable Attack if enemy can be killed with x auto attacks"));
 			AASettings.Add("minaa", new Slider("enable aa if killable with x aa", 3, 1, 6));
 			Obj_AI_Base.OnNewPath += Obj_AI_Base_OnNewPath;
 			Obj_AI_Base.OnBasicAttack += Obj_AI_Base_OnBasicAttack;
@@ -174,8 +173,7 @@ namespace ParaSyndra
 			var enemy = TargetSelector.GetTarget(Player.Instance.AttackRange + Player.Instance.BoundingRadius + 150, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			if (Player.Instance.Level >= AASettings["disaa"].Cast<Slider>().CurrentValue ||
-			    (AASettings["enaaa"].Cast<CheckBox>().CurrentValue && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * AASettings["minaa"].Cast<Slider>().CurrentValue) ||
+			if ((Player.Instance.Level >= AASettings["disaa"].Cast<Slider>().CurrentValue && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * AASettings["minaa"].Cast<Slider>().CurrentValue) ||
 			    (AASettings["readyaa"].Cast<CheckBox>().CurrentValue && (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready || Player.CanUseSpell(SpellSlot.W) == SpellState.Ready || Player.CanUseSpell(SpellSlot.E) == SpellState.Ready)))
 			{
 				Orbwalker.DisableAttacking = true;
