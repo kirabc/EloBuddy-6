@@ -191,14 +191,6 @@ namespace ParaSyndra
 			var enemy = TargetSelector.GetTarget(800, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			if (Player.Instance.Level >= AASettings["disaa"].Cast<CheckBox>().CurrentValue)
-			{
-				Orbwalker.DisableAttacking = true;
-			}
-			else
-			{
-				Orbwalker.DisableAttacking = false;
-			}
 			float delay = 0.5f;
 			if (Game.Time > laste + 2f && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
 			{
