@@ -8,7 +8,7 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
 
-namespace ParaSyndraaaa
+namespace ParaSyndra
 {
 	public class Timer
 	{
