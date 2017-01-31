@@ -61,7 +61,8 @@ namespace ParaSyndra
 			Auto.AddSeparator();
 			Auto.AddGroupLabel("AUTO Harras:");
 			Auto.Add("autoq", new CheckBox("Q"));
-			Auto.Add("autoe", new CheckBox("QE"));
+			Auto.Add("autoei", new CheckBox("QE - Enemy In Q Range"));
+			Auto.Add("autoeo", new CheckBox("QE - Enemy Out Of Q Range"));
 			Auto.Add("automana", new Slider("Minimum Mana Percent", 50));
 			Obj_AI_Base.OnNewPath += Obj_AI_Base_OnNewPath;
 			Obj_AI_Base.OnBasicAttack += Obj_AI_Base_OnBasicAttack;
@@ -126,14 +127,15 @@ namespace ParaSyndra
 				{
 					QLogic();
 				}
-				if (Auto["autoe"].Cast<CheckBox>().CurrentValue)
+				if (Auto["autoei"].Cast<CheckBox>().CurrentValue && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready && Game.Time > lastq + 0.15f && Game.Time < lastq + 0.35f && Game.Time > laste + 2f && LastQCastPos.Distance(Player.Instance) < 700)
+				{
+					Player.CastSpell(SpellSlot.E, LastQCastPos);
+					laste = Game.Time;
+				}
+				if (Auto["autoeo"].Cast<CheckBox>().CurrentValue)
 				{
 					QELogic();
-					if (Player.CanUseSpell(SpellSlot.E) == SpellState.Ready && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.5f && Game.Time > laste + 2f && LastQCastPos.Distance(Player.Instance) < 700)
-					{
-						Player.CastSpell(SpellSlot.E, LastQCastPos);
-						laste = Game.Time;
-					}
+					ELogic();
 				}
 			}
 		}
