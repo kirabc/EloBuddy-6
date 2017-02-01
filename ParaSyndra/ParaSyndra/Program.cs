@@ -29,7 +29,7 @@ namespace ParaSyndra
 		
 		static readonly Dictionary<int, GameObject> QObjects = new Dictionary<int, GameObject>();
 		
-		static float lastq, lastw, laste, wminion;
+		static float lastq, lastw, laste;
 		
 		static bool wobj;
 		
@@ -238,7 +238,7 @@ namespace ParaSyndra
 			if (Player.CanUseSpell(SpellSlot.E) == SpellState.Ready || Game.Time < laste + 0.75f)
 				return;
 			
-			if (wobj && Game.Time > wminion + 0.25f)
+			if (wobj && Game.Time > lastw + 0.25f)
 			{
 				var enemy = TargetSelector.GetTarget(950, DamageType.Magical);
 				if (enemy.IsValidTarget())
@@ -247,7 +247,7 @@ namespace ParaSyndra
 				}
 			}
 			
-			if (wobj || Game.Time < wminion + 5f || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
+			if (wobj || Game.Time < lastw + 5f || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
 				return;
 			
 			var check = TargetSelector.GetTarget(900, DamageType.Magical);
@@ -261,12 +261,12 @@ namespace ParaSyndra
 				{
 					Player.CastSpell(SpellSlot.W, pos);
 					wobj = true;
-					wminion = Game.Time;
+					lastw = Game.Time;
 					break;
 				}
 			}
 			
-			if (wobj || Game.Time < wminion + 5f)
+			if (wobj || Game.Time < lastw + 5f)
 				return;
 			
 			foreach (var m in EntityManager.MinionsAndMonsters.EnemyMinions)
@@ -278,7 +278,7 @@ namespace ParaSyndra
 					{
 						Player.CastSpell(SpellSlot.W, pos);
 						wobj = true;
-						wminion = Game.Time;
+						lastw = Game.Time;
 						break;
 					}
 				}
