@@ -65,10 +65,10 @@ namespace ParaSyndra
 			}
 			Auto.AddSeparator();
 			Auto.AddGroupLabel("AUTO Harras:");
-			Auto.Add("autoq", new CheckBox("Q"));
-			Auto.Add("autoei", new CheckBox("QE - Enemy In Q Range", false));
-			Auto.Add("autoeo", new CheckBox("QE - Enemy Out Of Q Range", false));
-			Auto.Add("automana", new Slider("Minimum Mana Percent", 50));
+			Auto.Add("autoq", new CheckBox("Auto Q"));
+			Auto.Add("automana", new Slider("Auto Q - Minimum Mana Percent", 50));
+			Auto.Add("autoei", new CheckBox("Auto QE - Enemy In Q Range", false));
+			Auto.Add("autoeo", new CheckBox("Auto QE - Enemy Out Of Q Range", false));
 			AASettings = Config.AddSubMenu("Orbwalking Attack Settings");
 			AASettings.Add("disaa", new Slider("Disable Attack Level", 11, 1, 18));
 			AASettings.Add("readyaa", new CheckBox("Disable Attack If Q | W | E Ready"));
