@@ -317,7 +317,7 @@ namespace ParaSyndra
 			}
 			Vector3 Pred2 = Pred.To3D();
 			Player.CastSpell(SpellSlot.Q, Pred2);
-			Core.DelayAction(() => Player.CastSpell(SpellSlot.E, Pred2), 150);
+			Core.DelayAction(() => Player.CastSpell(SpellSlot.E, Pred2), 250);
 			lastq = Game.Time;
 			laste = Game.Time;
 		}
