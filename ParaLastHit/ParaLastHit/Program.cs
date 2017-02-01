@@ -33,14 +33,7 @@ namespace ParaLastHit
 		{
 			if (menu["lasthit"].Cast<KeyBind>().CurrentValue)
 			{
-				Orbwalker.DisableMovement = true;
-				Orbwalker.DisableAttacking = true;
 				LastHit();
-			}
-			else
-			{
-				Orbwalker.DisableMovement = false;
-				Orbwalker.DisableAttacking = false;
 			}
 		}
 		
