@@ -69,10 +69,10 @@ namespace ParaSyndra
 			Auto.Add("automana", new Slider("Auto Q - Minimum Mana Percent", 50));
 			Auto.Add("autoei", new CheckBox("Auto QE - Enemy In Q Range", false));
 			Auto.Add("autoeo", new CheckBox("Auto QE - Enemy Out Of Q Range", false));
-			AASettings = Config.AddSubMenu("Orbwalking Attack Settings");
-			AASettings.Add("disaa", new Slider("Disable Attack Level", 11, 1, 18));
-			AASettings.Add("readyaa", new CheckBox("Disable Attack If Q | W | E Ready"));
-			AASettings.Add("minaa", new Slider("enable aa if killable with x aa", 3, 1, 6));
+			AASettings = Config.AddSubMenu("Attack");
+			AASettings.Add("readyaa", new CheckBox("Disable If Q Or W Ready"));
+			AASettings.Add("disaa", new Slider("Disable At Level", 11, 1, 18));
+			AASettings.Add("minaa", new Slider("Enable If Killable With x AA", 3, 1, 6));
 			
 			Obj_AI_Base.OnNewPath += Obj_AI_Base_OnNewPath;
 			Obj_AI_Base.OnBasicAttack += Obj_AI_Base_OnBasicAttack;
