@@ -8,7 +8,7 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
 
-namespace ParaSyndra
+namespace ParaSyndraaaa
 {
 	public class Timer
 	{
@@ -252,6 +252,10 @@ namespace ParaSyndra
 			}
 			
 			if (wobj || Game.Time < wminion + 5f || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
+				return;
+			
+			var check = TargetSelector.GetTarget(900, DamageType.Magical);
+			if (!check.IsValidTarget())
 				return;
 			
 			foreach (var qobj in QObjects)
