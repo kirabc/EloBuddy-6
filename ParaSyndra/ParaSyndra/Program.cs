@@ -70,9 +70,9 @@ namespace ParaSyndra
 			Auto.Add("autoei", new CheckBox("Auto QE - Enemy In Q Range", false));
 			Auto.Add("autoeo", new CheckBox("Auto QE - Enemy Out Of Q Range", false));
 			AASettings = Config.AddSubMenu("Attack");
-			AASettings.Add("readyaa", new CheckBox("Disable If Q Or W Ready"));
-			AASettings.Add("disaa", new Slider("Disable At Level", 11, 1, 18));
-			AASettings.Add("minaa", new Slider("Enable If Killable With x AA", 3, 1, 6));
+			AASettings.Add("readyaa", new CheckBox("Disable if spells ready"));
+			AASettings.Add("disaa", new Slider("Disable at level", 11, 1, 18));
+			AASettings.Add("minaa", new Slider("Enable if killable with x aa", 3, 1, 6));
 			
 			Obj_AI_Base.OnNewPath += Obj_AI_Base_OnNewPath;
 			Obj_AI_Base.OnBasicAttack += Obj_AI_Base_OnBasicAttack;
