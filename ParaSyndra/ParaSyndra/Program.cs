@@ -85,14 +85,10 @@ namespace ParaSyndra
 			Auto["autoq"].Cast<CheckBox>().OnValueChange += AutoQ;
 			Auto["autoei"].Cast<CheckBox>().OnValueChange += AutoEI;
 			Auto["autoeo"].Cast<CheckBox>().OnValueChange += AutoEO;
-			;
 			Auto["automana"].Cast<Slider>().OnValueChange += AutoMana;
 			AASettings["disaa"].Cast<Slider>().OnValueChange += DisAA;
-			;
 			AASettings["readyaa"].Cast<CheckBox>().OnValueChange += ReadyAA;
-			;
 			AASettings["minaa"].Cast<Slider>().OnValueChange += MinAA;
-			;
 			
 			automana = Auto["automana"].Cast<Slider>().CurrentValue;
 			disaa = AASettings["disaa"].Cast<Slider>().CurrentValue;
