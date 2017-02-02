@@ -254,18 +254,18 @@ namespace ParaSyndra
 		
 		static void WLogic()
 		{
-			if (Player.CanUseSpell(SpellSlot.E) == SpellState.Ready || Game.Time < laste + 0.75f || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
+			if (Game.Time < laste + 0.75f || Game.Time < lastq + 0.5f || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
 				return;
 			
 			if (Game.Time > wminion + 0.5f && Game.Time < wminion + 5 && !Player.Instance.HasBuff("syndrawtooltip"))
 				wminion = 0;
 			
-			if (Player.Instance.HasBuff("syndrawtooltip") && Game.Time > wminion + 0.1f)
+			if (Game.Time > wminion + 0.25f && Player.Instance.HasBuff("syndrawtooltip"))
 			{
 				var enemy = TargetSelector.GetTarget(1050, DamageType.Magical);
 				if (!enemy.IsValidTarget())
 					return;
-				CastSpell(SpellSlot.W, enemy, 950, 2000, 0f);
+				CastSpell(SpellSlot.W, enemy, 950, 2500, 0f);
 				return;
 			}
 			
