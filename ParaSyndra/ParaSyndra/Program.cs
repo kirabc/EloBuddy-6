@@ -54,7 +54,7 @@ namespace ParaSyndra
 				return;
 			}
 			Config = MainMenu.AddMenu("ParaSyndra", "parasyndra");
-			Config.AddGroupLabel("ParaSyndra [1.0.1.4]");
+			Config.AddGroupLabel("ParaSyndra [1.0.0.8]");
 			Auto = Config.AddSubMenu("Automatic");
 			Auto.AddGroupLabel("Ulti ON:");
 			foreach (var enemy in EntityManager.Heroes.Enemies)
@@ -204,10 +204,10 @@ namespace ParaSyndra
 		{
 			if (Player.CanUseSpell(SpellSlot.Q) != SpellState.Ready || Player.CanUseSpell(SpellSlot.E) != SpellState.Ready || Game.Time < lastq + 1f || Game.Time < laste + 1f)
 				return;
-			var enemy = TargetSelector.GetTarget(1100, DamageType.Magical);
+			var enemy = TargetSelector.GetTarget(1200, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			Vector2 Pred = GetPoint(enemy, 1100, 2000, 0.5f);
+			Vector2 Pred = GetPoint(enemy, 1100, 2000, 0f);
 			if (Pred.IsZero)
 				return;
 			Vector2 mepos = Player.Instance.Position.To2D();
@@ -241,13 +241,13 @@ namespace ParaSyndra
 		
 		static void QLogic()
 		{
-			var enemy = TargetSelector.GetTarget(800, DamageType.Magical);
+			var enemy = TargetSelector.GetTarget(900, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			float delay = 0.5f;
+			float delay = 0.4f;
 			if (Game.Time > laste + 2f && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready)
 			{
-				delay = 0.9f;
+				delay = 0.8f;
 			}
 			CastSpell(SpellSlot.Q, enemy, 800, 0, delay);
 		}
@@ -262,10 +262,10 @@ namespace ParaSyndra
 			
 			if (Player.Instance.HasBuff("syndrawtooltip"))
 			{
-				var enemy = TargetSelector.GetTarget(950, DamageType.Magical);
+				var enemy = TargetSelector.GetTarget(1050, DamageType.Magical);
 				if (!enemy.IsValidTarget())
 					return;
-				CastSpell(SpellSlot.W, enemy, 950, 1450, 0.5f);
+				CastSpell(SpellSlot.W, enemy, 950, 1450, 0f);
 				return;
 			}
 			
@@ -298,13 +298,13 @@ namespace ParaSyndra
 		{
 			if (Game.Time < laste + 2f || Player.CanUseSpell(SpellSlot.E) != SpellState.Ready)
 				return;
-			var enemy = TargetSelector.GetTarget(1100, DamageType.Magical);
+			var enemy = TargetSelector.GetTarget(1200, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
 			foreach (var qobj in QObjects)
 			{
 				Vector2 P1 = Player.Instance.Position.To2D();
-				Vector2 P2 = GetPoint(enemy, 1100, 2000, 0.5f);
+				Vector2 P2 = GetPoint(enemy, 1100, 2000, 0f);
 				if (P2.IsZero)
 					return;
 				Vector2 P3 = qobj.Value.Position.To2D();
