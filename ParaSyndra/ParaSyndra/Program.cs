@@ -39,6 +39,10 @@ namespace ParaSyndra
 		
 		static readonly Spell.Targeted R5 = new Spell.Targeted(SpellSlot.R, 750, DamageType.Magical);
 		
+		static int automana, disaa, minaa;
+		
+		static bool autoei, autoeo, autoq, readyaa;
+		
 		public static void Main(string[] args)
 		{
 			Loading.OnLoadingComplete += Loading_OnLoadingComplete;
@@ -50,7 +54,7 @@ namespace ParaSyndra
 				return;
 			}
 			Config = MainMenu.AddMenu("ParaSyndra", "parasyndra");
-			Config.AddGroupLabel("ParaSyndra [1.0.0.8]");
+			Config.AddGroupLabel("ParaSyndra [1.0.1.4]");
 			Auto = Config.AddSubMenu("Automatic");
 			Auto.AddGroupLabel("Ulti ON:");
 			foreach (var enemy in EntityManager.Heroes.Enemies)
@@ -73,6 +77,57 @@ namespace ParaSyndra
 			GameObject.OnCreate += GameObject_OnCreate;
 			GameObject.OnDelete += GameObject_OnDelete;
 			Game.OnUpdate += Game_OnUpdate;
+			
+			Auto["autoq"].Cast<CheckBox>().OnValueChange += AutoQ;
+			Auto["autoei"].Cast<CheckBox>().OnValueChange += AutoEI;
+			Auto["autoeo"].Cast<CheckBox>().OnValueChange += AutoEO;
+			Auto["automana"].Cast<Slider>().OnValueChange += AutoMana;
+			AASettings["disaa"].Cast<Slider>().OnValueChange += DisAA;
+			AASettings["readyaa"].Cast<CheckBox>().OnValueChange += ReadyAA;
+			AASettings["minaa"].Cast<Slider>().OnValueChange += MinAA;
+			
+			automana = Auto["automana"].Cast<Slider>().CurrentValue;
+			disaa = AASettings["disaa"].Cast<Slider>().CurrentValue;
+			minaa = AASettings["minaa"].Cast<Slider>().CurrentValue;
+			autoei = Auto["autoei"].Cast<CheckBox>().CurrentValue;
+			autoeo = Auto["autoeo"].Cast<CheckBox>().CurrentValue;
+			autoq = Auto["autoq"].Cast<CheckBox>().CurrentValue;
+			readyaa = AASettings["readyaa"].Cast<CheckBox>().CurrentValue;
+		}
+		
+		static void AutoQ(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
+		{
+			autoq = args.NewValue;
+		}
+		
+		static void AutoEI(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
+		{
+			autoei = args.NewValue;
+		}
+		
+		static void AutoEO(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
+		{
+			autoeo = args.NewValue;
+		}
+		
+		static void AutoMana(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
+		{
+			automana = args.NewValue;
+		}
+
+		static void DisAA(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
+		{
+			disaa = args.NewValue;
+		}
+
+		static void ReadyAA(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
+		{
+			readyaa = args.NewValue;
+		}
+
+		static void MinAA(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
+		{
+			minaa = args.NewValue;
 		}
 		
 		static void Obj_AI_Base_OnNewPath(Obj_AI_Base sender, GameObjectNewPathEventArgs args)
@@ -152,7 +207,7 @@ namespace ParaSyndra
 			var enemy = TargetSelector.GetTarget(1100, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			Vector2 Pred = GetPoint(enemy, 1100, 0, 0.5f);
+			Vector2 Pred = GetPoint(enemy, 1100, 2000, 0.5f);
 			if (Pred.IsZero)
 				return;
 			Vector2 mepos = Player.Instance.Position.To2D();
@@ -189,10 +244,10 @@ namespace ParaSyndra
 			var enemy = TargetSelector.GetTarget(800, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			float delay = 0.3f;
+			float delay = 0.5f;
 			if (Game.Time > laste + 2f && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready)
 			{
-				delay = 0.7f;
+				delay = 0.9f;
 			}
 			CastSpell(SpellSlot.Q, enemy, 800, 0, delay);
 		}
@@ -205,7 +260,7 @@ namespace ParaSyndra
 			if (Game.Time > wminion + 0.5f && Game.Time < wminion + 5 && !Player.Instance.HasBuff("syndrawtooltip"))
 				wminion = 0;
 			
-			if (Player.Instance.HasBuff("syndrawtooltip") && Game.Time > wminion + 0.25f)
+			if (Player.Instance.HasBuff("syndrawtooltip"))
 			{
 				var enemy = TargetSelector.GetTarget(950, DamageType.Magical);
 				if (!enemy.IsValidTarget())
@@ -217,13 +272,9 @@ namespace ParaSyndra
 			if (Game.Time < wminion + 5 || Player.Instance.HasBuff("syndrawtooltip"))
 				return;
 			
-			int count = 0;
-			var i = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(900)).GetEnumerator();
-			while (i.MoveNext())
-			{
-				count++;
-			}
-			if (count == 0)
+			int count = EntityManager.Heroes.Enemies.Count(x => x.IsValidTarget(900));
+			
+			if (count < 1)
 				return;
 			
 			foreach (var syndrasq in QObjects.Where(x=>x.Value.Position.Distance(Player.Instance)<925))
@@ -253,7 +304,7 @@ namespace ParaSyndra
 			foreach (var qobj in QObjects)
 			{
 				Vector2 P1 = Player.Instance.Position.To2D();
-				Vector2 P2 = GetPoint(enemy, 1100, 0, 0.5f);
+				Vector2 P2 = GetPoint(enemy, 1100, 2000, 0.5f);
 				if (P2.IsZero)
 					return;
 				Vector2 P3 = qobj.Value.Position.To2D();
@@ -309,12 +360,10 @@ namespace ParaSyndra
 				{
 					extra = level * 25;
 				}
-				foreach (var enemy in EntityManager.Heroes.Enemies.Where(x=>x.IsValidTarget(675f + extra) && Auto[x.ChampionName].Cast<CheckBox>().CurrentValue))
+				var target = TargetSelector.GetTarget(675f + extra, DamageType.Magical);
+				if (target.IsValidTarget() && CanUlt(target) && Auto[target.ChampionName].Cast<CheckBox>().CurrentValue)
 				{
-					if (CanUlt(enemy))
-					{
-						R.Cast(enemy);
-					}
+					R.Cast(target);
 				}
 			}
 		}
@@ -344,30 +393,73 @@ namespace ParaSyndra
 			Vector3[] path = Timers[enemyid].Path;
 			int lenght = path.Length;
 			Vector3 predpos = Vector3.Zero;
-			if (lenght == 2)
+			if (lenght > 1)
 			{
-				Vector2 enemypath = path.LastOrDefault().To2D();
-				float d = enemypos.Distance(enemypath);
-				float t = 0f;
-				if (speed == 0)
+				float s_in_time = enemyspeed * (Game.Time - Timers[enemyid].PathTime + (Game.Ping * 0.001f));
+				float d = 0f;
+				for (int i = 0; i < lenght - 1; i++)
 				{
-					t = delay;
-				}
-				else
-				{
-					t = Quadratic_Equation(mepos, enemypos, enemypath, enemyspeed, speed, delay);
-				}
-				float s = enemyspeed * t;
-				if (d > s)
-				{
-					predpos = (enemypos + ((enemypath - enemypos).Normalized() * s)).To3D();
-				}
-				else
-				{
-					predpos = (enemypos + ((enemypath - enemypos).Normalized() * d)).To3D();
+					Vector2 vi = path[i].To2D();
+					Vector2 vi1 = path[i + 1].To2D();
+					d += vi.Distance(vi1);
+					if (d >= s_in_time)
+					{
+						float dd = enemypos.Distance(vi1);
+						float t = 0f;
+						if (speed == 0)
+						{
+							t = delay;
+						}
+						else
+						{
+							t = Quadratic_Equation(mepos, enemypos, vi1, enemyspeed, speed, delay);
+						}
+						float ss = enemyspeed * t;
+						if (dd >= ss)
+						{
+							predpos = (enemypos + ((vi1 - enemypos).Normalized() * ss)).To3D();
+							break;
+						}
+						if (i + 1 == lenght - 1)
+						{
+							predpos = (enemypos + ((vi1 - enemypos).Normalized() * enemypos.Distance(vi1))).To3D();
+							break;
+						}
+						for (int j = i + 1; j < lenght - 1; j++)
+						{
+							Vector2 vj = path[j].To2D();
+							Vector2 vj1 = path[j + 1].To2D();
+							if (speed == 0)
+							{
+								ss -= dd;
+							}
+							else
+							{
+								t = Quadratic_Equation(mepos, vj, vj1, enemyspeed, speed, delay);
+								ss = (enemyspeed * t) - dd;
+							}
+							dd = vj.Distance(vj1);
+							if (dd >= ss)
+							{
+								predpos = (vj + ((vj1 - vj).Normalized() * ss)).To3D();
+								break;
+							}
+							if (j + 1 == lenght - 1)
+							{
+								predpos = (vj + ((vj1 - vj).Normalized() * dd)).To3D();
+								break;
+							}
+						}
+						break;
+					}
+					if (i + 1 == lenght - 1)
+					{
+						predpos = (vi + ((vi1 - vi).Normalized() * vi.Distance(vi1))).To3D();
+						break;
+					}
 				}
 			}
-			else if (lenght < 2)
+			else
 			{
 				predpos = enemy.Position;
 			}
@@ -403,29 +495,73 @@ namespace ParaSyndra
 			Vector3[] path = Timers[enemyid].Path;
 			int lenght = path.Length;
 			Vector2 enemypath = path.LastOrDefault().To2D();
-			if (lenght == 2)
+			if (lenght > 1)
 			{
-				float d = enemypos.Distance(enemypath);
-				float t = 0f;
-				if (speed == 0)
+				float s_in_time = enemyspeed * (Game.Time - Timers[enemyid].PathTime + (Game.Ping * 0.001f));
+				float d = 0f;
+				for (int i = 0; i < lenght - 1; i++)
 				{
-					t = delay;
-				}
-				else
-				{
-					t = Quadratic_Equation(mepos, enemypos, enemypath, enemyspeed, speed, delay);
-				}
-				float s = enemyspeed * t;
-				if (d > s)
-				{
-					predpos = enemypos + (enemypath - enemypos).Normalized() * s;
-				}
-				else
-				{
-					predpos = enemypos + (enemypath - enemypos).Normalized() * d;
+					Vector2 vi = path[i].To2D();
+					Vector2 vi1 = path[i + 1].To2D();
+					d += vi.Distance(vi1);
+					if (d >= s_in_time)
+					{
+						float dd = enemypos.Distance(vi1);
+						float t = 0f;
+						if (speed == 0)
+						{
+							t = delay;
+						}
+						else
+						{
+							t = Quadratic_Equation(mepos, enemypos, vi1, enemyspeed, speed, delay);
+						}
+						float ss = enemyspeed * t;
+						if (dd >= ss)
+						{
+							predpos = enemypos + ((vi1 - enemypos).Normalized() * ss);
+							break;
+						}
+						if (i + 1 == lenght - 1)
+						{
+							predpos = enemypos + ((vi1 - enemypos).Normalized() * enemypos.Distance(vi1));
+							break;
+						}
+						for (int j = i + 1; j < lenght - 1; j++)
+						{
+							Vector2 vj = path[j].To2D();
+							Vector2 vj1 = path[j + 1].To2D();
+							if (speed == 0)
+							{
+								ss -= dd;
+							}
+							else
+							{
+								t = Quadratic_Equation(mepos, vj, vj1, enemyspeed, speed, delay);
+								ss = (enemyspeed * t) - dd;
+							}
+							dd = vj.Distance(vj1);
+							if (dd >= ss)
+							{
+								predpos = vj + ((vj1 - vj).Normalized() * ss);
+								break;
+							}
+							if (j + 1 == lenght - 1)
+							{
+								predpos = vj + ((vj1 - vj).Normalized() * dd);
+								break;
+							}
+						}
+						break;
+					}
+					if (i + 1 == lenght - 1)
+					{
+						predpos = vi + ((vi1 - vi).Normalized() * vi.Distance(vi1));
+						break;
+					}
 				}
 			}
-			else if (lenght < 2)
+			else
 			{
 				predpos = enemypos;
 			}
@@ -455,11 +591,11 @@ namespace ParaSyndra
 			{
 				double t1 = (-b + Math.Sqrt(d)) / (2 * a);
 				double t2 = (-b - Math.Sqrt(d)) / (2 * a);
-				return (float)Math.Max(t1, t2) + (Game.Ping / 1000) + delay;
+				return (float)Math.Max(t1, t2) + delay;
 			}
 			if (d >= 0 && d < 0.00001)
 			{
-				return (-b / (2 * a)) + (Game.Ping / 1000) + delay;
+				return (-b / (2 * a)) + delay;
 			}
 			return 0.0001f;
 		}
