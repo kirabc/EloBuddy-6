@@ -260,7 +260,7 @@ namespace ParaSyndra
 			if (Game.Time > wminion + 0.5f && Game.Time < wminion + 5 && !Player.Instance.HasBuff("syndrawtooltip"))
 				wminion = 0;
 			
-			if (Player.Instance.HasBuff("syndrawtooltip"))
+			if (Player.Instance.HasBuff("syndrawtooltip") && Game.Time > wminion + 0.1f)
 			{
 				var enemy = TargetSelector.GetTarget(1050, DamageType.Magical);
 				if (!enemy.IsValidTarget())
