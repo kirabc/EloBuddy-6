@@ -265,7 +265,7 @@ namespace ParaSyndra
 				var enemy = TargetSelector.GetTarget(1050, DamageType.Magical);
 				if (!enemy.IsValidTarget())
 					return;
-				CastSpell(SpellSlot.W, enemy, 950, 2500, 0f);
+				CastSpell(SpellSlot.W, enemy, 950, 2500, 0.2f);
 				return;
 			}
 			
