@@ -29,9 +29,7 @@ namespace ParaSyndra
 		
 		static readonly Dictionary<int, GameObject> QObjects = new Dictionary<int, GameObject>();
 		
-		static float lastq, lastw, laste;
-		
-		static bool wobj;
+		static float lastq, laste, wminion;
 		
 		static Vector3 LastQCastPos;
 		
@@ -45,15 +43,12 @@ namespace ParaSyndra
 		{
 			Loading.OnLoadingComplete += Loading_OnLoadingComplete;
 		}
-		
-		static int automana, disaa, minaa;
-		
-		static bool autoei, autoeo, autoq, readyaa;
-		
 		static void Loading_OnLoadingComplete(EventArgs args)
 		{
 			if (Player.Instance.ChampionName != "Syndra")
+			{
 				return;
+			}
 			Config = MainMenu.AddMenu("ParaSyndra", "parasyndra");
 			Config.AddGroupLabel("ParaSyndra [1.0.0.8]");
 			Auto = Config.AddSubMenu("Automatic");
@@ -73,65 +68,11 @@ namespace ParaSyndra
 			AASettings.Add("readyaa", new CheckBox("Disable if spells ready"));
 			AASettings.Add("disaa", new Slider("Disable at level", 11, 1, 18));
 			AASettings.Add("minaa", new Slider("Enable if killable with x aa", 3, 1, 6));
-			
 			Obj_AI_Base.OnNewPath += Obj_AI_Base_OnNewPath;
 			Obj_AI_Base.OnBasicAttack += Obj_AI_Base_OnBasicAttack;
 			GameObject.OnCreate += GameObject_OnCreate;
 			GameObject.OnDelete += GameObject_OnDelete;
 			Game.OnUpdate += Game_OnUpdate;
-			Obj_AI_Base.OnBuffGain += Obj_AI_Base_OnBuffGain;
-			Obj_AI_Base.OnBuffLose += Obj_AI_Base_OnBuffLose;
-			
-			Auto["autoq"].Cast<CheckBox>().OnValueChange += AutoQ;
-			Auto["autoei"].Cast<CheckBox>().OnValueChange += AutoEI;
-			Auto["autoeo"].Cast<CheckBox>().OnValueChange += AutoEO;
-			Auto["automana"].Cast<Slider>().OnValueChange += AutoMana;
-			AASettings["disaa"].Cast<Slider>().OnValueChange += DisAA;
-			AASettings["readyaa"].Cast<CheckBox>().OnValueChange += ReadyAA;
-			AASettings["minaa"].Cast<Slider>().OnValueChange += MinAA;
-			
-			automana = Auto["automana"].Cast<Slider>().CurrentValue;
-			disaa = AASettings["disaa"].Cast<Slider>().CurrentValue;
-			minaa = AASettings["minaa"].Cast<Slider>().CurrentValue;
-			autoei = Auto["autoei"].Cast<CheckBox>().CurrentValue;
-			autoeo = Auto["autoeo"].Cast<CheckBox>().CurrentValue;
-			autoq = Auto["autoq"].Cast<CheckBox>().CurrentValue;
-			readyaa = AASettings["readyaa"].Cast<CheckBox>().CurrentValue;
-		}
-		
-		static void AutoQ(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
-		{
-			autoq = args.NewValue;
-		}
-		
-		static void AutoEI(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
-		{
-			autoei = args.NewValue;
-		}
-		
-		static void AutoEO(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
-		{
-			autoeo = args.NewValue;
-		}
-		
-		static void AutoMana(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
-		{
-			automana = args.NewValue;
-		}
-
-		static void DisAA(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
-		{
-			disaa = args.NewValue;
-		}
-
-		static void ReadyAA(ValueBase<bool> sender, ValueBase<bool>.ValueChangeArgs args)
-		{
-			readyaa = args.NewValue;
-		}
-
-		static void MinAA(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
-		{
-			minaa = args.NewValue;
 		}
 		
 		static void Obj_AI_Base_OnNewPath(Obj_AI_Base sender, GameObjectNewPathEventArgs args)
@@ -139,8 +80,8 @@ namespace ParaSyndra
 			int id = sender.NetworkId;
 			if (!Timers.ContainsKey(id))
 				return;
-			Timers[id].PathTime = Game.Time;
 			Timers[id].Path = args.Path;
+			Timers[id].PathTime = Game.Time;
 		}
 		
 		static void Obj_AI_Base_OnBasicAttack(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
@@ -187,116 +128,21 @@ namespace ParaSyndra
 			else
 			{
 				Orbwalker.DisableAttacking = false;
-				if (Player.Instance.ManaPercent > automana && autoq)
+				if (Player.Instance.ManaPercent > Auto["automana"].Cast<Slider>().CurrentValue && Auto["autoq"].Cast<CheckBox>().CurrentValue)
 				{
 					QLogic();
 				}
-				if (autoei && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.4f && Game.Time > laste + 2f && LastQCastPos.Distance(Player.Instance) < 700)
+				if (Auto["autoei"].Cast<CheckBox>().CurrentValue && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.4f && Game.Time > laste + 2f && LastQCastPos.Distance(Player.Instance) < 700)
 				{
 					Player.CastSpell(SpellSlot.E, LastQCastPos);
 					laste = Game.Time;
 				}
-				if (autoeo)
+				if (Auto["autoeo"].Cast<CheckBox>().CurrentValue)
 				{
 					QELogic();
 					ELogic();
 				}
 			}
-		}
-
-		static void Obj_AI_Base_OnBuffGain(Obj_AI_Base sender, Obj_AI_BaseBuffGainEventArgs args)
-		{
-			if (sender.IsMe && args.Buff.Name == "syndrawtooltip")
-			{
-				wobj = true;
-			}
-		}
-
-		static void Obj_AI_Base_OnBuffLose(Obj_AI_Base sender, Obj_AI_BaseBuffLoseEventArgs args)
-		{
-			if (sender.IsMe && args.Buff.Name == "syndrawtooltip")
-			{
-				wobj = false;
-			}
-		}
-
-		static void QLogic()
-		{
-			var enemy = TargetSelector.GetTarget(800, DamageType.Magical);
-			if (!enemy.IsValidTarget())
-				return;
-			float delay = 0.4f;
-			if (Game.Time > laste + 2f && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready)
-			{
-				delay += 0.4f;
-			}
-			CastSpell(SpellSlot.Q, enemy, 800, 0, delay);
-		}
-		
-		static void WLogic()
-		{
-			if (Player.CanUseSpell(SpellSlot.E) == SpellState.Ready || Game.Time < laste + 0.75f)
-				return;
-			
-			if (wobj && Game.Time > lastw + 0.25f)
-			{
-				var enemy = TargetSelector.GetTarget(950, DamageType.Magical);
-				if (enemy.IsValidTarget())
-				{
-					CastSpell(SpellSlot.W, enemy, 950, 1450, 0.2f);
-				}
-			}
-			
-			if (wobj || Game.Time < lastw + 5f || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
-				return;
-			
-			var check = TargetSelector.GetTarget(900, DamageType.Magical);
-			if (!check.IsValidTarget())
-				return;
-			
-			foreach (var qobj in QObjects)
-			{
-				Vector3 pos = qobj.Value.Position;
-				if (pos.Distance(Player.Instance.Position) < 925)
-				{
-					Player.CastSpell(SpellSlot.W, pos);
-					wobj = true;
-					lastw = Game.Time;
-					break;
-				}
-			}
-			
-			if (wobj || Game.Time < lastw + 5f)
-				return;
-			
-			foreach (var m in EntityManager.MinionsAndMonsters.EnemyMinions)
-			{
-				if (m.IsEnemy)
-				{
-					Vector3 pos = m.Position;
-					if (pos.Distance(Player.Instance.Position) < 925)
-					{
-						Player.CastSpell(SpellSlot.W, pos);
-						wobj = true;
-						lastw = Game.Time;
-						break;
-					}
-				}
-			}
-		}
-		
-		static void DisableAA()
-		{
-			var enemy = TargetSelector.GetTarget(Player.Instance.AttackRange + Player.Instance.BoundingRadius + 150, DamageType.Magical);
-			if (!enemy.IsValidTarget())
-				return;
-			if ((Player.Instance.Level >= disaa && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * minaa) ||
-			    (readyaa && (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready || (Player.CanUseSpell(SpellSlot.W) == SpellState.Ready && Player.CanUseSpell(SpellSlot.E) != SpellState.Ready))))
-			{
-				Orbwalker.DisableAttacking = true;
-				return;
-			}
-			Orbwalker.DisableAttacking = false;
 		}
 		
 		static void QELogic()
@@ -306,7 +152,7 @@ namespace ParaSyndra
 			var enemy = TargetSelector.GetTarget(1100, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			Vector2 Pred = GetPrediction(enemy, 1100, 0, 0.75f);
+			Vector2 Pred = GetPoint(enemy, 1100, 0, 0.5f);
 			if (Pred.IsZero)
 				return;
 			Vector2 mepos = Player.Instance.Position.To2D();
@@ -317,9 +163,84 @@ namespace ParaSyndra
 			}
 			Vector3 Pred2 = Pred.To3D();
 			Player.CastSpell(SpellSlot.Q, Pred2);
-			Core.DelayAction(() => Player.CastSpell(SpellSlot.E, Pred2), 250);
+			Core.DelayAction(() => Player.CastSpell(SpellSlot.E, Pred2), 150);
 			lastq = Game.Time;
 			laste = Game.Time;
+		}
+		
+		static void DisableAA()
+		{
+			var enemy = TargetSelector.GetTarget(Player.Instance.AttackRange + Player.Instance.BoundingRadius + 150, DamageType.Magical);
+			if (!enemy.IsValidTarget())
+				return;
+			if ((Player.Instance.Level >= AASettings["disaa"].Cast<Slider>().CurrentValue && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * AASettings["minaa"].Cast<Slider>().CurrentValue) ||
+			    (AASettings["readyaa"].Cast<CheckBox>().CurrentValue && (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready || (Player.CanUseSpell(SpellSlot.W) == SpellState.Ready && Player.CanUseSpell(SpellSlot.E) != SpellState.Ready))))
+			{
+				Orbwalker.DisableAttacking = true;
+			}
+			else
+			{
+				Orbwalker.DisableAttacking = false;
+			}
+		}
+		
+		static void QLogic()
+		{
+			var enemy = TargetSelector.GetTarget(800, DamageType.Magical);
+			if (!enemy.IsValidTarget())
+				return;
+			float delay = 0.3f;
+			if (Game.Time > laste + 2f && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready)
+			{
+				delay = 0.7f;
+			}
+			CastSpell(SpellSlot.Q, enemy, 800, 0, delay);
+		}
+		
+		static void WLogic()
+		{
+			if (Player.CanUseSpell(SpellSlot.E) == SpellState.Ready || Game.Time < laste + 0.75f || Player.CanUseSpell(SpellSlot.W) != SpellState.Ready)
+				return;
+			
+			if (Game.Time > wminion + 0.5f && Game.Time < wminion + 5 && !Player.Instance.HasBuff("syndrawtooltip"))
+				wminion = 0;
+			
+			if (Player.Instance.HasBuff("syndrawtooltip") && Game.Time > wminion + 0.25f)
+			{
+				var enemy = TargetSelector.GetTarget(950, DamageType.Magical);
+				if (!enemy.IsValidTarget())
+					return;
+				CastSpell(SpellSlot.W, enemy, 950, 1450, 0.5f);
+				return;
+			}
+			
+			if (Game.Time < wminion + 5 || Player.Instance.HasBuff("syndrawtooltip"))
+				return;
+			
+			int count = 0;
+			var i = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(900)).GetEnumerator();
+			while (i.MoveNext())
+			{
+				count++;
+			}
+			if (count == 0)
+				return;
+			
+			foreach (var syndrasq in QObjects.Where(x=>x.Value.Position.Distance(Player.Instance)<925))
+			{
+				Player.CastSpell(SpellSlot.W, syndrasq.Value.Position);
+				wminion = Game.Time;
+				break;
+			}
+			if (Game.Time < wminion + 5)
+				return;
+			
+			foreach (var minion in EntityManager.MinionsAndMonsters.EnemyMinions.Where(x=>x.Position.Distance(Player.Instance)<925))
+			{
+				Player.CastSpell(SpellSlot.W, minion.Position);
+				wminion = Game.Time;
+				break;
+			}
 		}
 		
 		static void ELogic()
@@ -332,7 +253,7 @@ namespace ParaSyndra
 			foreach (var qobj in QObjects)
 			{
 				Vector2 P1 = Player.Instance.Position.To2D();
-				Vector2 P2 = GetPrediction(enemy, 1100, 0, 0.5f);
+				Vector2 P2 = GetPoint(enemy, 1100, 0, 0.5f);
 				if (P2.IsZero)
 					return;
 				Vector2 P3 = qobj.Value.Position.To2D();
@@ -388,151 +309,134 @@ namespace ParaSyndra
 				{
 					extra = level * 25;
 				}
-				var target = TargetSelector.GetTarget(675f + extra, DamageType.Magical);
-				if (target.IsValidTarget() && CanUlt(target) && Auto[target.ChampionName].Cast<CheckBox>().CurrentValue)
+				foreach (var enemy in EntityManager.Heroes.Enemies.Where(x=>x.IsValidTarget(675f + extra) && Auto[x.ChampionName].Cast<CheckBox>().CurrentValue))
 				{
-					R.Cast(target);
+					if (CanUlt(enemy))
+					{
+						R.Cast(enemy);
+					}
 				}
 			}
 		}
 		
-		static bool CastSpell(SpellSlot Slot, AIHeroClient Enemy, int SpellRange, int SpellSpeed, float SpellDelay, bool CheckTime = false, int CheckTimer = 1)
+		static bool CastSpell(SpellSlot slot, AIHeroClient enemy, int range, int speed, float delay)
 		{
-			if (Player.CanUseSpell(Slot) != SpellState.Ready)
+			if (Player.CanUseSpell(slot) != SpellState.Ready)
 				return false;
-			
-			int EnemyID = Enemy.NetworkId;
-			Vector2 SourcePos = Player.Instance.Position.To2D();
-			Vector2 EnemyPos = Enemy.Position.To2D();
-			float Dist = SourcePos.Distance(EnemyPos);
-			
-			if (Game.Time < Timers[EnemyID].AAEndTime)
+			int enemyid = enemy.NetworkId;
+			bool aatrue = Game.Time < Timers[enemyid].AAEndTime;
+			Vector2 mepos = Player.Instance.Position.To2D();
+			Vector2 enemypos = enemy.Position.To2D();
+			float dist = mepos.Distance(enemypos);
+			if (aatrue)
 			{
-				if (Dist > SpellRange)
+				if (dist > range)
 					return false;
-				Player.CastSpell(Slot, EnemyPos.To3D());
-				if (Slot == SpellSlot.Q)
+				Player.CastSpell(slot, enemy.Position);
+				if (slot == SpellSlot.Q)
 				{
-					LastQCastPos = EnemyPos.To3D();
+					LastQCastPos = enemy.Position;
 					lastq = Game.Time;
 				}
 				return true;
 			}
-			
-			Vector3[] Path = Timers[EnemyID].Path;
-			float PathTime = Timers[EnemyID].PathTime;
-			float EnemySpeed = Enemy.MoveSpeed;
-			
-			Vector2 PredPos = GetPoint(Path, SourcePos, EnemyPos, PathTime, EnemySpeed, SpellSpeed, SpellDelay + (Game.Ping * 0.001f));
-			if (PredPos.IsZero || PredPos.Distance(SourcePos) > SpellRange || (int)Path.LastOrDefault().X != (int)Enemy.Path.LastOrDefault().X || (int)EnemySpeed != (int)Enemy.MoveSpeed || (CheckTime && Game.Time > PathTime + (CheckTimer / 1000) && Game.Time > Timers[EnemyID].PathTime + (CheckTimer / 1000)))
+			float enemyspeed = enemy.MoveSpeed;
+			Vector3[] path = Timers[enemyid].Path;
+			int lenght = path.Length;
+			Vector3 predpos = Vector3.Zero;
+			if (lenght == 2)
 			{
-				return false;
+				Vector2 enemypath = path.LastOrDefault().To2D();
+				float d = enemypos.Distance(enemypath);
+				float t = 0f;
+				if (speed == 0)
+				{
+					t = delay;
+				}
+				else
+				{
+					t = Quadratic_Equation(mepos, enemypos, enemypath, enemyspeed, speed, delay);
+				}
+				float s = enemyspeed * t;
+				if (d > s)
+				{
+					predpos = (enemypos + ((enemypath - enemypos).Normalized() * s)).To3D();
+				}
+				else
+				{
+					predpos = (enemypos + ((enemypath - enemypos).Normalized() * d)).To3D();
+				}
 			}
-			
-			Player.CastSpell(Slot, PredPos.To3D());
-			if (Slot == SpellSlot.Q)
+			else if (lenght < 2)
 			{
-				LastQCastPos = PredPos.To3D();
+				predpos = enemy.Position;
+			}
+			if (predpos.IsZero || predpos.Distance(mepos) > range || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
+				return false;
+			Player.CastSpell(slot, predpos);
+			if (slot == SpellSlot.Q)
+			{
+				LastQCastPos = enemy.Position;
 				lastq = Game.Time;
 			}
 			return true;
 		}
 		
-		static Vector2 GetPrediction(AIHeroClient Enemy, int SpellRange, int SpellSpeed, float SpellDelay, bool CheckTime = false, int CheckTimer = 1)
+		static Vector2 GetPoint(AIHeroClient enemy, int range, int speed, float delay, bool checktime = false)
 		{
-			int EnemyID = Enemy.NetworkId;
-			Vector2 SourcePos = Player.Instance.Position.To2D();
-			Vector2 EnemyPos = Enemy.Position.To2D();
-			float Dist = SourcePos.Distance(EnemyPos);
-			
-			if (Game.Time < Timers[EnemyID].AAEndTime)
+			int enemyid = enemy.NetworkId;
+			Vector2 predpos = Vector2.Zero;
+			Vector2 mepos = Player.Instance.Position.To2D();
+			Vector2 enemypos = enemy.Position.To2D();
+			float dist = mepos.Distance(enemypos);
+			if (Game.Time < Timers[enemyid].AAEndTime)
 			{
-				if (Dist > SpellRange)
-					return Vector2.Zero;
-				return EnemyPos;
+				if (dist > range)
+				{
+					return predpos;
+				}
+				return enemypos;
 			}
-			
-			Vector3[] Path = Timers[EnemyID].Path;
-			float PathTime = Timers[EnemyID].PathTime;
-			float EnemySpeed = Enemy.MoveSpeed;
-			
-			Vector2 PredPos = GetPoint(Path, SourcePos, EnemyPos, PathTime, EnemySpeed, SpellSpeed, SpellDelay + (Game.Ping * 0.001f));
-			if (PredPos.IsZero || PredPos.Distance(SourcePos) > SpellRange || (int)Path.LastOrDefault().X != (int)Enemy.Path.LastOrDefault().X || (int)EnemySpeed != (int)Enemy.MoveSpeed || (CheckTime && Game.Time > PathTime + (CheckTimer / 1000) && Game.Time > Timers[EnemyID].PathTime + (CheckTimer / 1000)))
+			if (checktime && Game.Time > Timers[enemyid].PathTime + 0.2f)
+				return predpos;
+			float enemyspeed = enemy.MoveSpeed;
+			Vector3[] path = Timers[enemyid].Path;
+			int lenght = path.Length;
+			Vector2 enemypath = path.LastOrDefault().To2D();
+			if (lenght == 2)
+			{
+				float d = enemypos.Distance(enemypath);
+				float t = 0f;
+				if (speed == 0)
+				{
+					t = delay;
+				}
+				else
+				{
+					t = Quadratic_Equation(mepos, enemypos, enemypath, enemyspeed, speed, delay);
+				}
+				float s = enemyspeed * t;
+				if (d > s)
+				{
+					predpos = enemypos + (enemypath - enemypos).Normalized() * s;
+				}
+				else
+				{
+					predpos = enemypos + (enemypath - enemypos).Normalized() * d;
+				}
+			}
+			else if (lenght < 2)
+			{
+				predpos = enemypos;
+			}
+			if (predpos.IsZero || predpos.Distance(mepos) > range || (int)enemypath.X != (int)enemy.Path.LastOrDefault().X)
 			{
 				return Vector2.Zero;
 			}
-			
-			return PredPos;
+			return predpos;
 		}
 		
-		static Vector2 GetPoint(Vector3[] Path, Vector2 SourcePos, Vector2 EnemyPos, float PathTime, float EnemySpeed, int SpellSpeed, float SpellDelay)
-		{
-			float Dist = SourcePos.Distance(EnemyPos);
-			int Lenght = Path.Length;
-			if (Lenght > 1)
-			{
-				float s_in_time = EnemySpeed * (Game.Time - PathTime);
-				float d = 0f;
-				for (int i = 0; i < Lenght - 1; i++)
-				{
-					Vector2 vi = Path[i].To2D();
-					Vector2 vi1 = Path[i + 1].To2D();
-					d += vi.Distance(vi1);
-					if (d >= s_in_time)
-					{
-						float dd = EnemyPos.Distance(vi1);
-						float t = 0f;
-						if (SpellSpeed == 0)
-						{
-							t = SpellDelay;
-						}
-						else
-						{
-							t = Quadratic_Equation(SourcePos, EnemyPos, vi1, EnemySpeed, SpellSpeed) + SpellDelay;
-						}
-						float ss = EnemySpeed * t;
-						if (dd >= ss)
-						{
-							return EnemyPos + ((vi1 - EnemyPos).Normalized() * ss);
-						}
-						if (i + 1 == Lenght - 1)
-						{
-							return EnemyPos + ((vi1 - EnemyPos).Normalized() * EnemyPos.Distance(vi1));
-						}
-						for (int j = i + 1; j < Lenght - 1; j++)
-						{
-							Vector2 vj = Path[j].To2D();
-							Vector2 vj1 = Path[j + 1].To2D();
-							if (SpellSpeed == 0)
-							{
-								ss -= dd;
-							}
-							else
-							{
-								t = Quadratic_Equation(SourcePos, vj, vj1, EnemySpeed, SpellSpeed) + SpellDelay;
-								ss = (EnemySpeed * t) - dd;
-							}
-							dd = vj.Distance(vj1);
-							if (dd >= ss)
-							{
-								return vj + ((vj1 - vj).Normalized() * ss);
-							}
-							if (j + 1 == Lenght - 1)
-							{
-								return vj + ((vj1 - vj).Normalized() * dd);
-							}
-						}
-					}
-					else if (i + 1 == Lenght - 1)
-					{
-						return vi + ((vi1 - vi).Normalized() * vi.Distance(vi1));
-					}
-				}
-			}
-			return EnemyPos;
-		}
-		
-		static float Quadratic_Equation(Vector2 source, Vector2 startP, Vector2 endP, float unitspeed, int spellspeed)
+		static float Quadratic_Equation(Vector2 source, Vector2 startP, Vector2 endP, float unitspeed, int spellspeed, float delay)
 		{
 			float sx = source.X;
 			float sy = source.Y;
@@ -551,11 +455,11 @@ namespace ParaSyndra
 			{
 				double t1 = (-b + Math.Sqrt(d)) / (2 * a);
 				double t2 = (-b - Math.Sqrt(d)) / (2 * a);
-				return (float)Math.Max(t1, t2);
+				return (float)Math.Max(t1, t2) + (Game.Ping / 1000) + delay;
 			}
 			if (d >= 0 && d < 0.00001)
 			{
-				return (-b / (2 * a));
+				return (-b / (2 * a)) + (Game.Ping / 1000) + delay;
 			}
 			return 0.0001f;
 		}
