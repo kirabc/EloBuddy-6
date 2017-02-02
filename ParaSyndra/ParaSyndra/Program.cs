@@ -183,16 +183,16 @@ namespace ParaSyndra
 			else
 			{
 				Orbwalker.DisableAttacking = false;
-				if (Player.Instance.ManaPercent > Auto["automana"].Cast<Slider>().CurrentValue && Auto["autoq"].Cast<CheckBox>().CurrentValue)
+				if (Player.Instance.ManaPercent > automana && autoq)
 				{
 					QLogic();
 				}
-				if (Auto["autoei"].Cast<CheckBox>().CurrentValue && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.4f && Game.Time > laste + 2f && LastQCastPos.Distance(Player.Instance) < 700)
+				if (autoei && Player.CanUseSpell(SpellSlot.E) == SpellState.Ready && Game.Time > lastq + 0.25f && Game.Time < lastq + 0.4f && Game.Time > laste + 2f && LastQCastPos.Distance(Player.Instance) < 700)
 				{
 					Player.CastSpell(SpellSlot.E, LastQCastPos);
 					laste = Game.Time;
 				}
-				if (Auto["autoeo"].Cast<CheckBox>().CurrentValue)
+				if (autoeo)
 				{
 					QELogic();
 					ELogic();
@@ -228,8 +228,8 @@ namespace ParaSyndra
 			var enemy = TargetSelector.GetTarget(Player.Instance.AttackRange + Player.Instance.BoundingRadius + 150, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			if ((Player.Instance.Level >= AASettings["disaa"].Cast<Slider>().CurrentValue && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * AASettings["minaa"].Cast<Slider>().CurrentValue) ||
-			    (AASettings["readyaa"].Cast<CheckBox>().CurrentValue && (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready || (Player.CanUseSpell(SpellSlot.W) == SpellState.Ready && Player.CanUseSpell(SpellSlot.E) != SpellState.Ready))))
+			if ((Player.Instance.Level >= disaa && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * minaa) ||
+			    (readyaa && (Player.CanUseSpell(SpellSlot.Q) == SpellState.Ready || (Player.CanUseSpell(SpellSlot.W) == SpellState.Ready && Player.CanUseSpell(SpellSlot.E) != SpellState.Ready))))
 			{
 				Orbwalker.DisableAttacking = true;
 			}
