@@ -207,7 +207,7 @@ namespace ParaSyndra
 			var enemy = TargetSelector.GetTarget(1200, DamageType.Magical);
 			if (!enemy.IsValidTarget())
 				return;
-			Vector2 Pred = GetPoint(enemy, 1100, 2500, 0.25f);
+			Vector2 Pred = GetPoint(enemy, 1100, 2000, 0.4f);
 			if (Pred.IsZero)
 				return;
 			Vector2 mepos = Player.Instance.Position.To2D();
@@ -265,7 +265,7 @@ namespace ParaSyndra
 				var enemy = TargetSelector.GetTarget(1050, DamageType.Magical);
 				if (!enemy.IsValidTarget())
 					return;
-				CastSpell(SpellSlot.W, enemy, 950, 2500, 0.2f);
+				CastSpell(SpellSlot.W, enemy, 950, 2000, 0.2f);
 				return;
 			}
 			
@@ -304,7 +304,7 @@ namespace ParaSyndra
 			foreach (var qobj in QObjects)
 			{
 				Vector2 P1 = Player.Instance.Position.To2D();
-				Vector2 P2 = GetPoint(enemy, 1100, 2500, 0.25f);
+				Vector2 P2 = GetPoint(enemy, 1100, 2000, 0.4f);
 				if (P2.IsZero)
 					return;
 				Vector2 P3 = qobj.Value.Position.To2D();
