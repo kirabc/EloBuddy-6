@@ -30,10 +30,6 @@ namespace ParaXerath
         {
             get { return Player.Instance.HasBuff("XerathR"); }
         }
-        static bool HasPassive
-        {
-            get { return Player.Instance.HasBuff("XerathAscended2OnHit"); }
-        }
         static bool IsChargingQ
         {
             get { return Player.Instance.HasBuff("XerathArcanopulseChargeUp"); }
@@ -78,9 +74,9 @@ namespace ParaXerath
             else
             {
                 Orbwalker.DisableMovement = false;
+                Orbwalker.DisableAttacking = false;
                 if (menu["combo"].Cast<KeyBind>().CurrentValue)
                 {
-                    DisableAA();
                     CastE();
                     CastW();
                     if (!IsChargingQ)
@@ -97,26 +93,6 @@ namespace ParaXerath
                         CastQ();
                     }
                 }
-                else
-                {
-                    Orbwalker.DisableAttacking = false;
-                }
-            }
-        }
-
-        static void DisableAA()
-        {
-            var enemy = TargetSelector.GetTarget(Player.Instance.AttackRange + Player.Instance.BoundingRadius + 150, DamageType.Magical);
-            if (!enemy.IsValidTarget())
-                return;
-            if (!HasPassive && ((Player.Instance.Level > 10 && enemy.Health > Player.Instance.GetAutoAttackDamage(enemy) * 3) ||
-                Q.IsReady() || W.IsReady()))
-            {
-                Orbwalker.DisableAttacking = true;
-            }
-            else
-            {
-                Orbwalker.DisableAttacking = false;
             }
         }
 
