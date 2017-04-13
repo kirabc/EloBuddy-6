@@ -12,7 +12,7 @@ namespace ParaXerath
 {
     class Program
     {
-        static readonly Dictionary<int, int> Timers = new Dictionary<int, int>();
+        static readonly Dictionary<int, float> Timers = new Dictionary<int, float>();
 
         static Menu menu;
 
@@ -60,7 +60,7 @@ namespace ParaXerath
             int id = sender.NetworkId;
             if (!Timers.ContainsKey(id))
                 return;
-            Timers[id] = (int)(Game.Time*1000);
+            Timers[id] = Game.Time;
         }
 
         static void Game_OnUpdate(EventArgs args)
