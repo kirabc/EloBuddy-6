@@ -167,7 +167,7 @@ namespace ParaXerath
             {
                 predpos = enemy.Position;
             }
-            if (predpos.IsZero || predpos.Distance(Player.Instance.Position) > range - 75 || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
+            if (predpos.IsZero || predpos.Distance(Player.Instance.Position) > range || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
                 return false;
             Player.Instance.Spellbook.UpdateChargeableSpell(SpellSlot.Q, predpos, true);
             Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
