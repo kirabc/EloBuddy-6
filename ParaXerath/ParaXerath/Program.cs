@@ -16,6 +16,8 @@ namespace ParaXerath
 
         static Menu menu;
 
+        static int qMana, wMana, eMana;
+
         static float qCasted, wCasted, eCasted;
 
         static Spell.Active Q = new Spell.Active(SpellSlot.Q);
@@ -45,7 +47,7 @@ namespace ParaXerath
             {
                 return;
             }
-            foreach(var enemy in EntityManager.Heroes.Enemies)
+            foreach (var enemy in EntityManager.Heroes.Enemies)
             {
                 Timers.Add(enemy.NetworkId, 0);
             }
@@ -65,6 +67,9 @@ namespace ParaXerath
 
         static void Game_OnUpdate(EventArgs args)
         {
+            qMana = 70 + Q.Level * 10;
+            wMana = 60 + Q.Level * 10;
+            eMana = 55 + Q.Level * 5;
             if (IsCastingR)
             {
                 Orbwalker.DisableAttacking = true;
@@ -82,7 +87,7 @@ namespace ParaXerath
                     if (!IsChargingQ)
                     {
                         var enemy = TargetSelector.GetTarget(1400, DamageType.Magical);
-                        if (Game.Time > wCasted + 0.3f && Game.Time > eCasted + 0.3f && Q.IsReady() && enemy.IsValidTarget() && Game.Time > lastQ + 1.5f)
+                        if (Game.Time > wCasted + 0.3f && Game.Time > eCasted + 0.3f && Q.IsReady() && Player.Instance.Mana > qMana && enemy.IsValidTarget() && Game.Time > lastQ + 1.5f)
                         {
                             Player.Instance.Spellbook.CastSpell(SpellSlot.Q, Game.CursorPos, true);
                             lastQ = Game.Time;
@@ -101,7 +106,7 @@ namespace ParaXerath
         static bool CastQ()
         {
             int range = 750 + (int)((Game.Time - lastQ) * 430);
-            if (range>1600)
+            if (range > 1600)
             {
                 range = 1600;
             }
@@ -177,7 +182,7 @@ namespace ParaXerath
 
         static bool CastW()
         {
-            if (!W.IsReady() || Game.Time < qCasted + 0.3f || Game.Time < eCasted + 0.3f)
+            if (!W.IsReady() || Game.Time < qCasted + 0.3f || Player.Instance.Mana < wMana || Game.Time < eCasted + 0.3f)
                 return false;
             var enemy = TargetSelector.GetTarget(1100, DamageType.Magical);
             if (!enemy.IsValidTarget())
@@ -251,7 +256,7 @@ namespace ParaXerath
 
         static bool CastE()
         {
-            if (!E.IsReady() || Game.Time < qCasted + 0.3f || Game.Time < wCasted + 0.3f)
+            if (!E.IsReady() || Game.Time < qCasted + 0.3f || Player.Instance.Mana < eMana || Game.Time < wCasted + 0.3f)
                 return false;
             var enemy = TargetSelector.GetTarget(1050, DamageType.Magical);
             if (!enemy.IsValidTarget())
