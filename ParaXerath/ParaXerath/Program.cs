@@ -174,8 +174,8 @@ namespace ParaXerath
             }
             float dist = predpos.Distance(Player.Instance.Position);
             if (dist > 1300)
-                range += 100;
-            if (predpos.IsZero || dist > range - 100 || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
+                range += 150;
+            if (predpos.IsZero || dist > range - 150 || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
                 return false;
             Player.Instance.Spellbook.UpdateChargeableSpell(SpellSlot.Q, predpos, true);
             Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
