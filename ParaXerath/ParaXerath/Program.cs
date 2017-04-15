@@ -14,7 +14,7 @@ namespace ParaXerath
     {
         static readonly Dictionary<int, float> Timers = new Dictionary<int, float>();
 
-        static Menu menu;
+        static Menu menu, misc;
 
         static int qMana, wMana, eMana;
 
@@ -87,7 +87,7 @@ namespace ParaXerath
                     if (!IsChargingQ)
                     {
                         var enemy = TargetSelector.GetTarget(1400, DamageType.Magical);
-                        if (Game.Time > wCasted + 0.3f && Game.Time > eCasted + 0.3f && Q.IsReady() && Player.Instance.Mana > qMana && enemy.IsValidTarget() && Game.Time > lastQ + 1.5f)
+                        if (Game.Time > wCasted + 0.35f && Game.Time > eCasted + 0.35f && Q.IsReady() && Player.Instance.Mana > qMana && enemy.IsValidTarget() && Game.Time > lastQ + 1.5f)
                         {
                             Player.Instance.Spellbook.CastSpell(SpellSlot.Q, Game.CursorPos, true);
                             lastQ = Game.Time;
@@ -105,12 +105,12 @@ namespace ParaXerath
 
         static bool CastQ()
         {
-            int range = 750 + (int)((Game.Time - lastQ) * 430);
-            if (range > 1600)
+            int range = 750 + (int)((Game.Time - lastQ) * 433);
+            if (range > 1500)
             {
-                range = 1600;
+                range = 1500;
             }
-            var enemy = TargetSelector.GetTarget(1600, DamageType.Magical);
+            var enemy = TargetSelector.GetTarget(1500, DamageType.Magical);
             if (!enemy.IsValidTarget())
                 return false;
             int enemyid = enemy.NetworkId;
@@ -172,7 +172,14 @@ namespace ParaXerath
             {
                 predpos = enemy.Position;
             }
-            if (predpos.IsZero || predpos.Distance(Player.Instance.Position) > range || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
+            float dist = predpos.Distance(Player.Instance.Position);
+            if (dist > 1300)
+                range += 100;
+            if (dist > 1400)
+                range += 50;
+            if (dist > 1500)
+                range += 25;
+            if (predpos.IsZero || dist > range - 100 || (int)path.LastOrDefault().X != (int)enemy.Path.LastOrDefault().X)
                 return false;
             Player.Instance.Spellbook.UpdateChargeableSpell(SpellSlot.Q, predpos, true);
             Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
@@ -182,7 +189,7 @@ namespace ParaXerath
 
         static bool CastW()
         {
-            if (!W.IsReady() || Game.Time < qCasted + 0.3f || Player.Instance.Mana < wMana || Game.Time < eCasted + 0.3f)
+            if (!W.IsReady() || Game.Time < qCasted + 0.35f || Player.Instance.Mana < wMana || Game.Time < eCasted + 0.35f)
                 return false;
             var enemy = TargetSelector.GetTarget(1100, DamageType.Magical);
             if (!enemy.IsValidTarget())
@@ -256,7 +263,7 @@ namespace ParaXerath
 
         static bool CastE()
         {
-            if (!E.IsReady() || Game.Time < qCasted + 0.3f || Player.Instance.Mana < eMana || Game.Time < wCasted + 0.3f)
+            if (!E.IsReady() || Game.Time < qCasted + 0.35f || Player.Instance.Mana < eMana || Game.Time < wCasted + 0.35f)
                 return false;
             var enemy = TargetSelector.GetTarget(1050, DamageType.Magical);
             if (!enemy.IsValidTarget())
