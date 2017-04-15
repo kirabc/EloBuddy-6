@@ -60,7 +60,7 @@ namespace ParaXerath
 
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (sender.IsMe && args.Slot == SpellSlot.Q)
+            if (sender.IsMe && args.Slot == SpellSlot.Q && Game.Time > lastQ + 0.2f)
             {
                 lastQ = Game.Time;
             }
