@@ -91,10 +91,10 @@ namespace ParaXerath
                 Orbwalker.DisableAttacking = false;
                 if (menu["combo"].Cast<KeyBind>().CurrentValue)
                 {
-                    CastE();
-                    CastW();
                     if (!IsChargingQ)
                     {
+                        CastW();
+                        CastE();
                         var enemy = TargetSelector.GetTarget(1400, DamageType.Magical);
                         if (Game.Time > wCasted + 0.35f && Game.Time > eCasted + 0.35f && Q.IsReady() && Player.Instance.Mana > qMana && enemy.IsValidTarget() && Game.Time > lastQ + 1.5f)
                         {
