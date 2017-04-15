@@ -68,8 +68,8 @@ namespace ParaXerath
         static void Game_OnUpdate(EventArgs args)
         {
             qMana = 70 + Q.Level * 10;
-            wMana = 60 + Q.Level * 10;
-            eMana = 55 + Q.Level * 5;
+            wMana = 60 + W.Level * 10;
+            eMana = 55 + E.Level * 5;
             if (IsCastingR)
             {
                 Orbwalker.DisableAttacking = true;
