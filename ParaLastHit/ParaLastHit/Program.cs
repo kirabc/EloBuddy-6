@@ -39,12 +39,7 @@ namespace ParaLastHit
 		
 		static void LastHit()
 		{
-			if (Game.Time < lastminion + 0.5f && Game.Time + 0.2f > lastaa + aadelay)
-			{
-				Player.IssueOrder(GameObjectOrder.AttackUnit, lasthit);
-				return;
-			}
-			
+						
 			if (Game.Time > lastaa + aacastdelay + 0.05f && Game.Time > lastmove + 0.2f)
 			{
 				Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
